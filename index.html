@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Pump.fun Terminal</title>
+    <meta charset="UTF-8">
+
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #00ffaa;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            margin-top: 40px;
+        }
+
+        .title {
+            font-size: 20px;
+            color: #ffcc00;
+            margin-bottom: 15px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            text-align: left;
+            padding: 10px;
+            background: #111;
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .table td {
+            padding: 10px;
+            border-bottom: 1px solid #222;
+            font-size: 14px;
+        }
+
+        .symbol {
+            font-weight: bold;
+            color: #00ffaa;
+        }
+
+        .dex {
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        .volume {
+            color: #00ffaa;
+            font-weight: bold;
+        }
+
+        .positive {
+            color: #00ff88;
+        }
+
+        .negative {
+            color: #ff5555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Pump.fun Trading Terminal</h1>
+
+    <!-- Meme Leaderboard -->
+    <div class="section">
+        <div class="title">Top Meme Coins (Pump.fun)</div>
+        <table class="table" id="memeTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Token</th>
+                    <th>Launchpad</th>
+                    <th>Total Volume ($)</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Trending -->
+    <div class="section">
+        <div class="title">Trending (Momentum)</div>
+        <table class="table" id="trendingTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Token</th>
+                    <th>Launchpad</th>
+                    <th>1m Vol</th>
+                    <th>5m Vol</th>
+                    <th>Trades</th>
+                    <th>Price Δ</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Surge -->
+    <div class="section">
+        <div class="title">Volume Surge</div>
+        <table class="table" id="surgeTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Token</th>
+                    <th>Launchpad</th>
+                    <th>Now Vol</th>
+                    <th>Prev Vol</th>
+                    <th>Surge</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const API = "http://localhost:4000";
+
+        async function loadMeme() {
+            const data = await fetch(API + "/top-meme").then(r => r.json());
+            const tbody = document.querySelector("#memeTable tbody");
+
+            tbody.innerHTML = data.map((t, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td class="symbol">${t.symbol}</td>
+      <td class="dex">${t.dex}</td>
+      <td class="volume">$${t.volume.toFixed(2)}</td>
+    </tr>
+  `).join("");
+        }
+
+        async function loadTrending() {
+            const data = await fetch(API + "/top-trending").then(r => r.json());
+            const tbody = document.querySelector("#trendingTable tbody");
+
+            tbody.innerHTML = data.map((t, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td class="symbol">${t.symbol}</td>
+      <td class="dex">${t.dex}</td>
+      <td>$${t.vol1m.toFixed(2)}</td>
+      <td>$${t.vol5m.toFixed(2)}</td>
+      <td>${t.trades1m}</td>
+      <td class="${t.priceChange >= 0 ? "positive" : "negative"}">
+        ${t.priceChange.toFixed(2)}%
+      </td>
+      <td class="volume">${t.score.toFixed(2)}</td>
+    </tr>
+  `).join("");
+        }
+
+        async function loadSurge() {
+            const data = await fetch(API + "/top-surge").then(r => r.json());
+            const tbody = document.querySelector("#surgeTable tbody");
+
+            tbody.innerHTML = data.map((t, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td class="symbol">${t.symbol}</td>
+      <td class="dex">${t.dex}</td>
+      <td>$${t.volNow.toFixed(2)}</td>
+      <td>$${t.volPrev.toFixed(2)}</td>
+      <td class="volume">${t.surge.toFixed(2)}x</td>
+    </tr>
+  `).join("");
+        }
+
+        // Auto refresh
+        async function refresh() {
+            await loadMeme();
+            await loadTrending();
+            await loadSurge();
+        }
+
+        setInterval(refresh, 3000);
+        refresh();
+    </script>
+
+</body>
+
+</html>
