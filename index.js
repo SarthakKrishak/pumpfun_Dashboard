@@ -3,7 +3,6 @@ import axios from "axios";
 import cors from "cors";
 import dotenv from "dotenv"
 dotenv.config();
-
 const app = express();
 
 app.use(cors());
@@ -38,10 +37,12 @@ const QUERY = `
 `;
 
 async function fetchTrades() {
+  const start = Date.now(); 
+
   try {
     const res = await axios.post(
       BITQUERY_URL,
-      { query: QUERY, variables: "{}" },
+      { query: QUERY },
       {
         headers: {
           "Content-Type": "application/json",
@@ -49,6 +50,9 @@ async function fetchTrades() {
         },
       }
     );
+
+    const latency = Date.now() - start;
+    console.log(`Bitquery latency: ${latency} ms`);
 
     const trades = res.data.data.Solana.DEXTrades;
     const now = Date.now();
@@ -89,7 +93,6 @@ async function fetchTrades() {
   }
 }
 
-// Poll
 setInterval(fetchTrades, 4000);
 fetchTrades();
 
@@ -122,7 +125,7 @@ app.get("/top-trending", (req, res) => {
       if (first > 0) priceChange = ((last - first) / first) * 100;
     }
 
-    const score = vol1m * 2 + trades1m * 5 + vol5m * 1 + priceChange * 10;
+    const score = vol1m * 2 + trades1m * 5 + vol5m + priceChange * 10;
 
     return {
       token: c.token,
@@ -172,6 +175,6 @@ app.get("/top-surge", (req, res) => {
 
 app.listen(process.env.PORT, () => {
   console.log(
-    `Terminal backend running on http://localhost:${process.env.PORT}`
+    `Pump.fun Trading Terminal running on http://localhost:${process.env.PORT}`
   );
 });
